@@ -106,9 +106,7 @@ while is_working:
                 img_index = 0
             player = player_imgs[img_index]
 
-
     pressed_keys = pygame.key.get_pressed()
-
     bgX -= bg_speed
     bgX2 -= bg_speed
 
@@ -145,7 +143,6 @@ while is_working:
             bonuses.pop(bonuses.index(bonus))
             pygame.mixer.Sound.play(bonSfx)
             scores += 1
-
 
     # Керування мячем
     if pressed_keys[K_DOWN] and not player_rect.bottom >= height:
