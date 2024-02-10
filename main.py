@@ -1,3 +1,4 @@
+import sys
 import pygame
 from os import listdir
 import random
@@ -15,18 +16,23 @@ BLACK = 0, 0, 0
 WHITE = 255, 255, 255
 RED = 255, 0, 0
 GOLD = 255, 215, 0
+GREEN = 0, 255, 0
 
-font = pygame.font.SysFont('Verda', 30)
+font = pygame.font.SysFont('Impact', 50)
 
 
 # Вікно
 main_surface = pygame.display.set_mode(screen)
-game_over_text = font.render('GAME OVER', True, (255, 0, 0))
+game_over_text = font.render('GAME OVER', True, RED)
 game_over_rect = game_over_text.get_rect(center=main_surface.get_rect().center)
+
 
 IMGS_PATH = 'goose'
 bonSfx = pygame.mixer.Sound('sound_bonus.wav')
 pygame.mixer.music.load("sound2.mp3")
+pygame.mixer.music.set_volume(0.1)
+collision_sound = pygame.mixer.Sound('collision_sound.mp3')
+collision_sound.set_volume(0.1)
 pygame.mixer.music.play(-1)
 
 # Параметри нашого GOOSE
@@ -84,16 +90,16 @@ bonuses = []
 
 
 # Цикл гри безкінечний
-is_working = True
+game_over = False
 
-while is_working:
-
+while not game_over:
     FPS.tick(60)
 
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.mixer.music.play(-1)
-            is_working = False
+            pygame.quit()
+            sys.exit()
 
         if event.type == CREATE_ENEMY:
             enemies.append(create_enemy())
@@ -119,7 +125,7 @@ while is_working:
     main_surface.blit(bg, (bgX2, 0))
     main_surface.blit(player, player_rect)
 
-    main_surface.blit(font.render(str(scores), True, BLACK), (0, 0))
+    main_surface.blit(font.render(str(scores), True, GREEN), (0, 0))
 
     for enemy in enemies:
         enemy[1] = enemy[1].move(-enemy[2], 0)
@@ -129,8 +135,8 @@ while is_working:
             enemies.pop(enemies.index(enemy))
 
         if player_rect.colliderect(enemy[1]):
-            enemy.pop(enemies.index(enemy))
-            is_working = False
+            collision_sound.play()
+            game_over = True
 
     for bonus in bonuses:
         bonus[1] = bonus[1].move(0, bonus[2])
@@ -144,21 +150,45 @@ while is_working:
             pygame.mixer.Sound.play(bonSfx)
             scores += 1
 
-    # Керування мячем
-    if pressed_keys[K_DOWN] and not player_rect.bottom >= height:
-        player_rect = player_rect.move(0, player_speed)
+    if not game_over:
+        # Керування мячем
+        if pressed_keys[K_DOWN] and not player_rect.bottom >= height:
+            player_rect = player_rect.move(0, player_speed)
 
-    if pressed_keys[K_UP] and not player_rect.top <= 0:
-        player_rect = player_rect.move(0, -player_speed)
+        if pressed_keys[K_UP] and not player_rect.top <= 0:
+            player_rect = player_rect.move(0, -player_speed)
 
-    if pressed_keys[K_RIGHT] and not player_rect.right >= width:
-        player_rect = player_rect.move(player_speed, 0)
+        if pressed_keys[K_RIGHT] and not player_rect.right >= width:
+            player_rect = player_rect.move(player_speed, 0)
 
-    if pressed_keys[K_LEFT] and not player_rect.left <= 0:
-        player_rect = player_rect.move(-player_speed, 0)
+        if pressed_keys[K_LEFT] and not player_rect.left <= 0:
+            player_rect = player_rect.move(-player_speed, 0)
 
     pygame.display.flip()
 
-    main_surface.blit(game_over_text, game_over_rect)
+    # Відображення надпису про кінець гри
+    if game_over:
+        main_surface.blit(game_over_text, game_over_rect)
+        pygame.mixer.music.stop()
+        continue_text = font.render('Щоб продовжити, натисни пробіл', True, (GOLD))
+        continue_rect = continue_text.get_rect(center=(width // 2, height - 50))
+        main_surface.blit(continue_text, continue_rect)
+        main_surface.blit(continue_text, continue_rect)
+        pygame.display.update()
 
-pygame.display.update()
+        # Очікування натискання клавіші для початку нової гри
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:  # Якщо натиснуто пробіл
+                        pygame.mixer.music.play(-1)
+                        game_over = False
+                        player_rect.center = (width // 2, height // 2)
+                        scores = 0
+                        enemies.clear()
+                        bonuses.clear()
+                        waiting = False
