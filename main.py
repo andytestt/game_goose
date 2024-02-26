@@ -40,23 +40,21 @@ player_imgs = [pygame.image.load(IMGS_PATH + '/' + file).convert_alpha() for fil
 for i in range(len(player_imgs)):
     player_imgs[i] = pygame.transform.scale(player_imgs[i], (player_imgs[i].get_width() // 2, player_imgs[i].get_height() // 2))
 player = player_imgs[0]
-player_speed = 6
+player_speed = 5
 player_rect = player.get_rect(center=(width // 2, height // 2))
 
 
-# Вороги та бонуси (за допомогою функції def )
-# noinspection PyUnreachableCode
+# Вороги та бонуси (за допомогою функції def)
 def create_enemy():
     enemy = pygame.image.load("enemy.png").convert_alpha()
     enemy = pygame.transform.scale(enemy, (enemy.get_width() // 2, enemy.get_height() // 2))
     enemy_rect = pygame.Rect(width, random.randint(0, height-enemy.get_height()), *enemy.get_size())
-    enemy_speed = random.randint(2, 5)
+    enemy_speed = random.randint(2, 7)
     return [enemy, enemy_rect, enemy_speed]
     if enemy_rect.bottom > game_height:
         enemy_rect.bottom = game_height
 
 
-# noinspection PyUnreachableCode
 def create_bonus():
     bonus = pygame.image.load("bonus.png").convert_alpha()
     bonus = pygame.transform.scale(bonus, (bonus.get_width() // 2, bonus.get_height() // 2))
@@ -70,7 +68,7 @@ def create_bonus():
 bg = pygame.transform.scale(pygame.image.load('background.png').convert(), screen)
 bgX = 0
 bgX2 = bg.get_width()
-bg_speed = 3
+bg_speed = 2
 
 CREATE_ENEMY = pygame.USEREVENT + 1
 pygame.time.set_timer(CREATE_ENEMY, 1500)
@@ -89,7 +87,7 @@ enemies = []
 bonuses = []
 
 
-# Цикл гри безкінечний
+# Цикл гри нескінченний
 game_over = False
 
 while not game_over:
@@ -125,7 +123,7 @@ while not game_over:
     main_surface.blit(bg, (bgX2, 0))
     main_surface.blit(player, player_rect)
 
-    main_surface.blit(font.render(str(scores), True, GREEN), (0, 0))
+    main_surface.blit(font.render(str(scores), True, GREEN), (50, 30))
 
     for enemy in enemies:
         enemy[1] = enemy[1].move(-enemy[2], 0)
@@ -151,7 +149,7 @@ while not game_over:
             scores += 1
 
     if not game_over:
-        # Керування мячем
+        # Керування м'ячем
         if pressed_keys[K_DOWN] and not player_rect.bottom >= height:
             player_rect = player_rect.move(0, player_speed)
 
@@ -170,7 +168,7 @@ while not game_over:
     if game_over:
         main_surface.blit(game_over_text, game_over_rect)
         pygame.mixer.music.stop()
-        continue_text = font.render('Щоб продовжити, натисни пробіл', True, (GOLD))
+        continue_text = font.render('Щоб продовжити, натисни пробіл', True, GOLD)
         continue_rect = continue_text.get_rect(center=(width // 2, height - 50))
         main_surface.blit(continue_text, continue_rect)
         main_surface.blit(continue_text, continue_rect)
